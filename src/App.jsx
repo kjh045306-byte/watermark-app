@@ -1,15 +1,18 @@
 import { useState, useEffect } from 'react'
 import './index.css'
 import { useWatermark } from './hooks/useWatermark'
+import { usePwaInstall } from './hooks/usePwaInstall'
 import { loadFonts } from './utils/fonts'
 import UploadZone from './components/UploadZone'
 import ControlPanel from './components/ControlPanel'
 import PreviewCanvas from './components/PreviewCanvas'
 import ActionBar from './components/ActionBar'
+import PwaInstallBanner from './components/PwaInstallBanner'
 
 export default function App() {
   const [pdfFile, setPdfFile] = useState(null) // { buffer: ArrayBuffer, name: string }
   const watermark = useWatermark()
+  const { canInstall, showIosGuide, promptInstall } = usePwaInstall()
 
   // 앱 마운트 시 모든 웹폰트를 백그라운드에서 미리 다운로드
   useEffect(() => { loadFonts() }, [])
@@ -34,6 +37,11 @@ export default function App() {
             PDF 워터마크
           </h1>
           <UploadZone onFile={(buffer, name) => setPdfFile({ buffer, name })} />
+          <PwaInstallBanner
+            canInstall={canInstall}
+            showIosGuide={showIosGuide}
+            onInstall={promptInstall}
+          />
         </div>
       </div>
     )
