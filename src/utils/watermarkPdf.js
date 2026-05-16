@@ -44,7 +44,7 @@ const RENDER_SCALE = 2
  */
 export async function buildWatermarkedPdf(pdfArrayBuffer, options) {
   // PDF 생성 전에도 폰트가 canvas에서 쓸 수 있는 상태인지 보장
-  await ensureFontLoaded(options.fontFamily)
+  await ensureFontLoaded(options.fontFamily, options.fontWeight)
 
   const pdfDoc = await PDFDocument.load(pdfArrayBuffer)
   const pages = pdfDoc.getPages()

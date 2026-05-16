@@ -40,11 +40,11 @@ export default function PreviewCanvas({ pdfBuffer, watermarkOptions, onPositionC
     const pdfCanvas = pdfCanvasRef.current
     if (!overlay || !pdfCanvas || !pdfCanvas.width || !pdfCanvas.height) return
 
-    const { fontFamily } = optionsRef.current
+    const { fontFamily, fontWeight } = optionsRef.current
 
     // 웹폰트만 로드 대기 + seq 체크. 시스템 폰트는 await 없이 즉시 진행
     if (isWebFont(fontFamily)) {
-      await ensureFontLoaded(fontFamily)
+      await ensureFontLoaded(fontFamily, fontWeight)
       if (seq !== redrawSeqRef.current) return
     }
 

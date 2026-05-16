@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { FONT_LIST } from '../utils/fonts'
+import { useState, useEffect } from 'react'
+import { FONT_LIST, getAvailableWeights, isSingleWeightFont } from '../utils/fonts'
 
 const SYSTEM_FONTS = [
   { label: '맑은 고딕',     family: 'Malgun Gothic' },       // Windows
@@ -60,6 +60,23 @@ export default function ControlPanel({
   totalPages,
 }) {
   const [isOpen, setIsOpen] = useState(false)
+
+  const availableWeights = getAvailableWeights(fontFamily)  // null = 시스템 폰트
+  const singleWeight = isSingleWeightFont(fontFamily)
+  const filteredWeights = availableWeights
+    ? WEIGHTS.filter((w) => availableWeights.includes(w.value))
+    : WEIGHTS
+
+  // 폰트 변경 시 현재 굵기가 새 폰트에 없으면 가장 가까운 값으로 교정
+  useEffect(() => {
+    if (!availableWeights) return
+    if (!availableWeights.includes(fontWeight)) {
+      const closest = availableWeights.reduce((a, b) =>
+        Math.abs(Number(b) - Number(fontWeight)) < Math.abs(Number(a) - Number(fontWeight)) ? b : a
+      )
+      setFontWeight(closest)
+    }
+  }, [fontFamily]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <aside className="w-full md:w-72 shrink-0">
@@ -140,12 +157,16 @@ export default function ControlPanel({
           <select
             value={fontWeight}
             onChange={(e) => setFontWeight(e.target.value)}
-            className={inputCls}
+            disabled={singleWeight}
+            className={`${inputCls} ${singleWeight ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            {WEIGHTS.map((w) => (
+            {filteredWeights.map((w) => (
               <option key={w.value} value={w.value}>{w.label}</option>
             ))}
           </select>
+          {singleWeight && (
+            <p className="text-xs text-gray-400">이 폰트는 단일 굵기만 지원합니다</p>
+          )}
         </div>
 
         {/* 4. 색상 */}

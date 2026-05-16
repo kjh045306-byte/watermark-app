@@ -1,78 +1,175 @@
-import montserratUrl from '@fontsource/montserrat/files/montserrat-latin-800-normal.woff2?url'
-import oswaldUrl from '@fontsource/oswald/files/oswald-latin-700-normal.woff2?url'
-import bebasNeueUrl from '@fontsource/bebas-neue/files/bebas-neue-latin-400-normal.woff2?url'
-import ralewayUrl from '@fontsource/raleway/files/raleway-latin-800-normal.woff2?url'
-import nunitoUrl from '@fontsource/nunito/files/nunito-latin-800-normal.woff2?url'
+import montserrat300Url from '@fontsource/montserrat/files/montserrat-latin-300-normal.woff2?url'
+import montserrat400Url from '@fontsource/montserrat/files/montserrat-latin-400-normal.woff2?url'
+import montserrat700Url from '@fontsource/montserrat/files/montserrat-latin-700-normal.woff2?url'
+import montserrat900Url from '@fontsource/montserrat/files/montserrat-latin-900-normal.woff2?url'
 
-export const FONT_LIST = [
-  { label: 'Montserrat',  family: 'Montserrat',  weight: '800', url: montserratUrl },
-  { label: 'Oswald',      family: 'Oswald',      weight: '700', url: oswaldUrl },
-  { label: 'Bebas Neue',  family: 'Bebas Neue',  weight: '400', url: bebasNeueUrl },
-  { label: 'Raleway',     family: 'Raleway',      weight: '800', url: ralewayUrl },
-  { label: 'Nunito',      family: 'Nunito',       weight: '800', url: nunitoUrl },
+import oswald300Url from '@fontsource/oswald/files/oswald-latin-300-normal.woff2?url'
+import oswald400Url from '@fontsource/oswald/files/oswald-latin-400-normal.woff2?url'
+import oswald700Url from '@fontsource/oswald/files/oswald-latin-700-normal.woff2?url'
+
+import bebasNeue400Url from '@fontsource/bebas-neue/files/bebas-neue-latin-400-normal.woff2?url'
+
+import raleway300Url from '@fontsource/raleway/files/raleway-latin-300-normal.woff2?url'
+import raleway400Url from '@fontsource/raleway/files/raleway-latin-400-normal.woff2?url'
+import raleway700Url from '@fontsource/raleway/files/raleway-latin-700-normal.woff2?url'
+import raleway900Url from '@fontsource/raleway/files/raleway-latin-900-normal.woff2?url'
+
+import nunito300Url from '@fontsource/nunito/files/nunito-latin-300-normal.woff2?url'
+import nunito400Url from '@fontsource/nunito/files/nunito-latin-400-normal.woff2?url'
+import nunito700Url from '@fontsource/nunito/files/nunito-latin-700-normal.woff2?url'
+import nunito900Url from '@fontsource/nunito/files/nunito-latin-900-normal.woff2?url'
+
+/**
+ * 각 웹폰트와 지원하는 weight 목록.
+ * weights 배열이 1개인 폰트(Bebas Neue)는 굵기 선택이 불가능하다.
+ */
+export const WEB_FONTS = [
+  {
+    label: 'Montserrat',
+    family: 'Montserrat',
+    weights: [
+      { weight: '300', url: montserrat300Url },
+      { weight: '400', url: montserrat400Url },
+      { weight: '700', url: montserrat700Url },
+      { weight: '900', url: montserrat900Url },
+    ],
+  },
+  {
+    label: 'Oswald',
+    family: 'Oswald',
+    weights: [
+      { weight: '300', url: oswald300Url },
+      { weight: '400', url: oswald400Url },
+      { weight: '700', url: oswald700Url },
+    ],
+  },
+  {
+    label: 'Bebas Neue',
+    family: 'Bebas Neue',
+    weights: [
+      { weight: '400', url: bebasNeue400Url },
+    ],
+  },
+  {
+    label: 'Raleway',
+    family: 'Raleway',
+    weights: [
+      { weight: '300', url: raleway300Url },
+      { weight: '400', url: raleway400Url },
+      { weight: '700', url: raleway700Url },
+      { weight: '900', url: raleway900Url },
+    ],
+  },
+  {
+    label: 'Nunito',
+    family: 'Nunito',
+    weights: [
+      { weight: '300', url: nunito300Url },
+      { weight: '400', url: nunito400Url },
+      { weight: '700', url: nunito700Url },
+      { weight: '900', url: nunito900Url },
+    ],
+  },
 ]
 
-// 이미 document.fonts에 등록된 family 추적
+// ControlPanel이 family / label에 접근하는 기존 코드와 호환
+export const FONT_LIST = WEB_FONTS
+
+// family → WEB_FONTS 항목
+function findWebFont(family) {
+  return WEB_FONTS.find((f) => f.family === family)
+}
+
+/** FONT_LIST에 등록된 웹폰트인지 확인한다. */
+export function isWebFont(family) {
+  return !!findWebFont(family)
+}
+
+/** 해당 폰트가 단일 weight만 지원하는지 여부 (Bebas Neue 등). */
+export function isSingleWeightFont(family) {
+  const font = findWebFont(family)
+  return font ? font.weights.length === 1 : false
+}
+
+/** 해당 폰트에서 사용 가능한 weight 문자열 배열. 시스템 폰트면 null. */
+export function getAvailableWeights(family) {
+  const font = findWebFont(family)
+  return font ? font.weights.map((w) => w.weight) : null
+}
+
+/**
+ * 요청한 weight와 가장 가까운 사용 가능한 weight를 반환한다.
+ * 시스템 폰트(WEB_FONTS 외)는 요청 weight를 그대로 반환한다.
+ */
+export function getEffectiveFontWeight(family, requestedWeight) {
+  const font = findWebFont(family)
+  if (!font) return requestedWeight
+
+  const available = font.weights.map((w) => Number(w.weight))
+  const target = Number(requestedWeight)
+  if (available.includes(target)) return requestedWeight
+
+  const closest = available.reduce((a, b) =>
+    Math.abs(b - target) < Math.abs(a - target) ? b : a
+  )
+  return String(closest)
+}
+
+// 이미 document.fonts에 등록된 (family, weight) 쌍 추적
 const _registered = new Set()
 
 /**
- * 모든 웹폰트 FontFace를 document.fonts에 등록한다 (다운로드는 하지 않음).
+ * 모든 웹폰트의 전체 weight를 document.fonts에 등록한다 (다운로드는 하지 않음).
  * 앱 최초 실행 시 동기적으로 호출해야 ensureFontLoaded / loadFonts가 동작한다.
  */
 export function registerFonts() {
-  for (const { family, weight, url } of FONT_LIST) {
-    if (_registered.has(family)) continue
-    document.fonts.add(
-      new FontFace(family, `url(${url}) format('woff2')`, { weight })
-    )
-    _registered.add(family)
+  for (const { family, weights } of WEB_FONTS) {
+    for (const { weight, url } of weights) {
+      const key = `${family}-${weight}`
+      if (_registered.has(key)) continue
+      document.fonts.add(
+        new FontFace(family, `url(${url}) format('woff2')`, { weight })
+      )
+      _registered.add(key)
+    }
   }
 }
 
 /**
- * 모든 워터마크 폰트를 비동기로 다운로드하고 document.fonts에 등록한다.
+ * 모든 워터마크 폰트(전체 weight)를 비동기로 다운로드한다.
  * @returns {Promise<Array<{ family: string, weight: string, loaded: boolean, error?: Error }>>}
  */
 export async function loadFonts() {
-  registerFonts() // 미등록 폰트 먼저 등록
+  registerFonts()
+
+  const allVariants = WEB_FONTS.flatMap(({ family, weights }) =>
+    weights.map(({ weight }) => ({ family, weight }))
+  )
 
   const results = await Promise.allSettled(
-    FONT_LIST.map(({ family, weight }) =>
+    allVariants.map(({ family, weight }) =>
       document.fonts.load(`${weight} 1px "${family}"`)
         .then(() => ({ family, weight, loaded: true }))
     )
   )
 
   return results.map((result, i) => {
-    const { family, weight } = FONT_LIST[i]
+    const { family, weight } = allVariants[i]
     if (result.status === 'fulfilled') return result.value
     return { family, weight, loaded: false, error: result.reason }
   })
 }
 
-/** FONT_LIST에 등록된 웹폰트인지 확인한다. */
-export function isWebFont(fontFamily) {
-  return FONT_LIST.some((f) => f.family === fontFamily)
-}
-
 /**
- * 웹폰트는 FONT_LIST에 등록된 weight(고정)를 반환하고,
- * 시스템 폰트는 사용자가 선택한 fontWeight를 그대로 반환한다.
+ * canvas에 그리기 전, 지정한 weight의 웹폰트가 로드됐는지 보장한다.
+ * 요청 weight가 없으면 가장 가까운 weight로 대체한다.
+ * 시스템 폰트(WEB_FONTS 외)는 isWebFont()로 사전 확인 후 호출하지 않는다.
  */
-export function getEffectiveFontWeight(fontFamily, fontWeight) {
-  const listEntry = FONT_LIST.find((f) => f.family === fontFamily)
-  return listEntry ? listEntry.weight : fontWeight
-}
+export async function ensureFontLoaded(family, fontWeight) {
+  if (!findWebFont(family)) return
 
-/**
- * canvas에 그리기 전 웹폰트가 로드됐는지 보장한다.
- * 시스템 폰트(FONT_LIST 외)는 isWebFont()로 사전 확인 후 호출하지 않는다.
- */
-export async function ensureFontLoaded(fontFamily) {
-  const listEntry = FONT_LIST.find((f) => f.family === fontFamily)
-  if (!listEntry) return
-
-  const spec = `${listEntry.weight} 1px "${fontFamily}"`
+  const effective = getEffectiveFontWeight(family, fontWeight)
+  const spec = `${effective} 1px "${family}"`
   if (document.fonts.check(spec)) return
 
   try {
