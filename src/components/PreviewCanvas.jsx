@@ -20,7 +20,7 @@ export default function PreviewCanvas({ pdfBuffer, watermarkOptions, onPositionC
   const [pageNumber, setPageNumber] = useState(1)
   const [cursor, setCursor] = useState('default')
 
-  const { totalPages, isLoading, error } = usePdfPreview({
+  const { totalPages, isLoading, error, pageWidthPtRef } = usePdfPreview({
     canvasRef: pdfCanvasRef,
     containerRef,
     pdfBuffer,
@@ -54,7 +54,10 @@ export default function PreviewCanvas({ pdfBuffer, watermarkOptions, onPositionC
 
     const ctx = overlay.getContext('2d')
     ctx.clearRect(0, 0, overlay.width, overlay.height)
-    drawWatermarkOnCanvas(ctx, overlay.width, overlay.height, 1, optionsRef.current)
+    // PDF pt 기준으로 미리보기 scale을 맞춰 PDF 출력과 동일한 비율로 그린다
+    const pdfPageWidthPt = pageWidthPtRef.current
+    const scale = pdfPageWidthPt > 0 ? overlay.width / pdfPageWidthPt : 1
+    drawWatermarkOnCanvas(ctx, overlay.width, overlay.height, scale, optionsRef.current)
   }
 
   // watermarkOptions(텍스트·스타일·위치) 변경 시 즉시 재그리기

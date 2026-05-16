@@ -23,6 +23,8 @@ export function usePdfPreview({ canvasRef, containerRef, pdfBuffer, pageNumber =
   const [docVersion, setDocVersion] = useState(0)
   const pdfDocRef = useRef(null)
   const renderTaskRef = useRef(null)
+  // PDF 페이지의 실제 너비(pt). MutationObserver 콜백에서 동기적으로 읽을 수 있도록 ref로 관리
+  const pageWidthPtRef = useRef(0)
 
   // PDF 문서 로드
   useEffect(() => {
@@ -79,6 +81,8 @@ export function usePdfPreview({ canvasRef, containerRef, pdfBuffer, pageNumber =
 
         const containerWidth = container.clientWidth
         const baseViewport = page.getViewport({ scale: 1 })
+        // canvas.width 변경 전에 동기적으로 저장 — MutationObserver가 즉시 올바른 값을 읽도록
+        pageWidthPtRef.current = baseViewport.width
         const scale = containerWidth / baseViewport.width
         const viewport = page.getViewport({ scale })
 
@@ -118,5 +122,5 @@ export function usePdfPreview({ canvasRef, containerRef, pdfBuffer, pageNumber =
     }
   }, [])
 
-  return { totalPages, isLoading, error }
+  return { totalPages, isLoading, error, pageWidthPtRef }
 }
