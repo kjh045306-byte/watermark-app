@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react'
 
 export function useWatermark() {
-  const [watermarkText, setWatermarkText] = useState('© 작성자명')
-  const [fontSize, setFontSize] = useState(60)
-  const [opacity, setOpacity] = useState(20)
+  const [watermarkText, setWatermarkText] = useState('Yull2T MUSIC')
+  const [fontSize, setFontSize] = useState(65)
+  const [opacity, setOpacity] = useState(25)
   const [color, setColor] = useState('#888888')
-  const [fontFamily, setFontFamily] = useState('Montserrat')
-  const [fontWeight, setFontWeight] = useState('800')
-  const [angle, setAngle] = useState(-30)
+  const [fontFamily, setFontFamily] = useState('Apple SD Gothic Neo')
+  const [fontWeight, setFontWeight] = useState('900')
+  const [angle, setAngle] = useState(-50)
   const [position, setPosition] = useState({ x: 0.5, y: 0.5 })
 
   useEffect(() => {
