@@ -85,6 +85,22 @@ export function isWebFont(family) {
   return !!findWebFont(family)
 }
 
+const SANS_FALLBACK = ['Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'sans-serif']
+const SERIF_FALLBACK = ['AppleMyungjo', 'Batang', 'Noto Serif KR', 'serif']
+const SERIF_FAMILIES = ['Batang', 'AppleMyungjo']
+
+/**
+ * ctx.font에 넣을 font-family 문자열을 만든다.
+ * 웹폰트는 이름 하나만, 시스템 폰트는 기기별 대체 폰트 목록을 뒤에 붙인다.
+ */
+export function buildCanvasFontFamily(family) {
+  if (isWebFont(family)) return `"${family}"`
+
+  const fallback = SERIF_FAMILIES.includes(family) ? SERIF_FALLBACK : SANS_FALLBACK
+  const list = [family, ...fallback.filter((f) => f !== family)]
+  return list.map((f) => (f.includes(' ') ? `"${f}"` : f)).join(', ')
+}
+
 /** 해당 폰트가 단일 weight만 지원하는지 여부 (Bebas Neue 등). */
 export function isSingleWeightFont(family) {
   const font = findWebFont(family)

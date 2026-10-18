@@ -1,5 +1,5 @@
 import { PDFDocument } from 'pdf-lib'
-import { ensureFontLoaded, getEffectiveFontWeight } from './fonts'
+import { ensureFontLoaded, getEffectiveFontWeight, buildCanvasFontFamily } from './fonts'
 
 /**
  * Canvas 2D context에 워터마크 텍스트를 그린다.
@@ -23,7 +23,7 @@ export function drawWatermarkOnCanvas(ctx, width, height, scale, options) {
   ctx.translate(position.x * width, position.y * height)
   ctx.rotate((angle * Math.PI) / 180)
 
-  ctx.font = `${effectiveWeight} ${fontSize * scale}px "${fontFamily}"`
+  ctx.font = `${effectiveWeight} ${fontSize * scale}px ${buildCanvasFontFamily(fontFamily)}`
   console.log('[3] drawWatermarkOnCanvas ctx.font:', ctx.font)
   ctx.fillStyle = color
   ctx.textAlign = 'center'
