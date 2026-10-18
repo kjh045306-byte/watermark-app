@@ -5,7 +5,7 @@ import { buildWatermarkedPdf } from '../utils/watermarkPdf'
 const IS_MOBILE = window.matchMedia('(pointer: coarse)').matches
 
 function getDownloadName(fileName) {
-  return fileName.replace(/\.pdf$/i, '') + '_watermark.pdf'
+  return fileName.replace(/\.pdf$/i, '') + '.pdf'
 }
 
 function Spinner({ light }) {
