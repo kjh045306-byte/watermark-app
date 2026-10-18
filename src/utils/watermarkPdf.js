@@ -1,5 +1,5 @@
 import { PDFDocument } from 'pdf-lib'
-import { ensureFontLoaded, getEffectiveFontWeight, buildCanvasFontFamily } from './fonts'
+import { ensureFontLoaded, getEffectiveFontWeight, buildCanvasFontFamily, isWebFont } from './fonts'
 
 /**
  * Canvas 2D context에 워터마크 텍스트를 그린다.
@@ -17,19 +17,40 @@ export function drawWatermarkOnCanvas(ctx, width, height, scale, options) {
   // 시스템 폰트: 사용자 선택 weight 적용
   const effectiveWeight = getEffectiveFontWeight(fontFamily, fontWeight)
 
+  // 시스템 폰트는 400/700 두 단계뿐이라 900이 700과 똑같이 보인다.
+  // 900이면 같은 글자를 stroke로 한 번 더 그려 두껍게 만든다.
+  const needsStroke = !isWebFont(fontFamily) && Number(fontWeight) >= 900
+  const fontSizePx = fontSize * scale
+
+  const drawText = (g) => {
+    g.translate(position.x * width, position.y * height)
+    g.rotate((angle * Math.PI) / 180)
+    g.font = `${effectiveWeight} ${fontSizePx}px ${buildCanvasFontFamily(fontFamily)}`
+    g.fillStyle = color
+    g.textAlign = 'center'
+    g.textBaseline = 'middle'
+    g.fillText(text, 0, 0)
+    if (needsStroke) {
+      g.strokeStyle = color
+      g.lineWidth = fontSizePx * 0.03
+      g.lineJoin = 'round'
+      g.strokeText(text, 0, 0)
+    }
+  }
+
   ctx.save()
-
-  ctx.globalAlpha = opacity / 100
-  ctx.translate(position.x * width, position.y * height)
-  ctx.rotate((angle * Math.PI) / 180)
-
-  ctx.font = `${effectiveWeight} ${fontSize * scale}px ${buildCanvasFontFamily(fontFamily)}`
-  console.log('[3] drawWatermarkOnCanvas ctx.font:', ctx.font)
-  ctx.fillStyle = color
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-  ctx.fillText(text, 0, 0)
-
+  if (needsStroke) {
+    // fill과 stroke가 투명도로 겹쳐 진해지지 않도록 불투명하게 따로 그린 뒤 한 번에 합성
+    const layer = document.createElement('canvas')
+    layer.width = width
+    layer.height = height
+    drawText(layer.getContext('2d'))
+    ctx.globalAlpha = opacity / 100
+    ctx.drawImage(layer, 0, 0)
+  } else {
+    ctx.globalAlpha = opacity / 100
+    drawText(ctx)
+  }
   ctx.restore()
 }
 
